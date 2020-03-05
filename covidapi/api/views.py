@@ -3,12 +3,9 @@ from fastapi import APIRouter
 from sqlalchemy.orm import Session
 from typing import List
 
-from ..db import models
 from ..services import crud
 from ..schemas.schemas import DailyReport
-from ..db.database import SessionLocal, engine
-
-models.Base.metadata.create_all(bind=engine)
+from ..db.database import SessionLocal
 
 router = APIRouter()
 
