@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from ..db import models
+from ..schemas import schemas
 
 
 def get_daily_report(db: Session, daily_report_id: int):
