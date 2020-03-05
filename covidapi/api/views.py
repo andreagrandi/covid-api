@@ -1,22 +1,12 @@
 from fastapi import Depends
 from fastapi import APIRouter
-from sqlalchemy.orm import Session
 from typing import List
 
 from ..services import crud
+from ..services.session import get_db, Session
 from ..schemas.schemas import DailyReport
-from ..db.database import SessionLocal
 
 router = APIRouter()
-
-
-# Dependency
-def get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
 
 
 @router.get('/v1/health')
