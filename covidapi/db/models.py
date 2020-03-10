@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 
-from .database import Base, engine
+from .database import Base
 
 
 class DailyReport(Base):
@@ -13,6 +13,3 @@ class DailyReport(Base):
     confirmed = Column(Integer)
     deaths = Column(Integer)
     recovered = Column(Integer)
-
-
-Base.metadata.create_all(bind=engine)
