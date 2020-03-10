@@ -8,11 +8,3 @@ def get_db() -> Session:
         yield db
     finally:
         db.close()
-
-
-def get_test_db() -> Session:
-    try:
-        db = TestSessionLocal()
-        yield db
-    finally:
-        db.close()
