@@ -9,3 +9,14 @@ services:
       - POSTGRES_USER=covidapi
     ports:
       - "5432:5432"
+
+  app:
+    build: .
+    volumes:
+      - .:/covidapi
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://covidapi:dummypassword@db:5432/covidapi
+    ports:
+      - "8000:8000"
