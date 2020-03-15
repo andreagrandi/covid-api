@@ -16,7 +16,22 @@ source ./env/bin/activate
 pip install -r requirements.txt
 ```
 
-Then run the app with:
+You will need a postgres database to run the application.
+If you have [docker](https://docs.docker.com/get-started/) installed, then you can create a database by running
+
+```
+docker-compose up
+```
+
+To import the data, run
+
+```
+cd covidapi
+python import_data.py
+cd ..
+```
+
+Then you can run the app with:
 
 ```
 uvicorn covidapi.app:app --reload
