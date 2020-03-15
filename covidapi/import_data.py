@@ -2,6 +2,9 @@ import csv
 from db.models import DailyReport
 from db.database import SessionLocal, engine, Base
 from datetime import datetime
+from pathlib import Path
+
+CSV_FILE = Path(__file__).parent / '02-29-2020.csv'
 
 
 def main():
@@ -10,7 +13,7 @@ def main():
     Base.metadata.create_all(engine)
     db_instance = SessionLocal()
 
-    with open('02-29-2020.csv') as csv_file:
+    with open(CSV_FILE) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         next(csv_reader, None)  # skip the headers
 
