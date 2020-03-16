@@ -1,0 +1,22 @@
+version: '3'
+services:
+  db:
+    image: postgres:12.2
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=dummypassword
+      - POSTGRES_USER=covidapi
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    volumes:
+      - .:/covidapi
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://covidapi:dummypassword@db:5432/covidapi
+    ports:
+      - "8000:8000"
