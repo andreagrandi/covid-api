@@ -42,3 +42,9 @@ Check the application is running with:
 ```
 heroku open
 ```
+
+## Import the data
+
+```
+heroku run python covidapi/import_data.py
+```
