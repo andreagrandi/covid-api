@@ -51,3 +51,6 @@ uvicorn covidapi.app:app --reload
 The API will be served at [http://localhost:8000/](http://localhost:8000/)
 
 The API docs are served at [http://localhost:8000/docs](http://localhost:8000/docs)
+
+## Deployment
+See [deploying to heroku](./docs/heroku-deploy.md).
