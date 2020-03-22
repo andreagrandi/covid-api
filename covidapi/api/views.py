@@ -1,5 +1,8 @@
+import pkg_resources
 from fastapi import Depends
 from fastapi import APIRouter
+from starlette.responses import RedirectResponse
+from starlette.responses import HTMLResponse
 from typing import List
 
 from ..services import crud
@@ -8,6 +11,9 @@ from ..schemas.schemas import DailyReport
 
 router = APIRouter()
 
+@router.get('/')
+def root():
+    return HTMLResponse(pkg_resources.resource_string(__name__, 'static/index.html'))
 
 @router.get('/v1/health')
 def health():
