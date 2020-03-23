@@ -1,10 +1,19 @@
-import csv
 from db.models import DailyReport
 from db.database import SessionLocal, engine, Base
 from datetime import datetime
 from pathlib import Path
+from dataflows import Flow, load, checkpoint
 
-CSV_FILE = Path(__file__).parent / '02-29-2020.csv'
+BASE_URL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+
+
+def get_data_with_caching(date_string):
+    result = Flow(
+      load(f'{BASE_URL}{date_string}.csv'),
+      checkpoint(date_string),
+    ).results()
+
+    return result[0][0]
 
 
 def main():
@@ -13,21 +22,17 @@ def main():
     Base.metadata.create_all(engine)
     db_instance = SessionLocal()
 
-    with open(CSV_FILE) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        next(csv_reader, None)  # skip the headers
+    for row in get_data_with_caching('02-29-2020'):
+        dr = DailyReport(
+            province_state=row['Province/State'],
+            country_region=row['Country/Region'],
+            last_update=datetime.fromisoformat(row['Last Update']),
+            confirmed=row['Confirmed'],
+            deaths=row['Deaths'],
+            recovered=row['Recovered'],
+        )
 
-        for row in csv_reader:
-            dr = DailyReport(
-                province_state=row[0],
-                country_region=row[1],
-                last_update=datetime.fromisoformat(row[2]),
-                confirmed=row[3],
-                deaths=row[4],
-                recovered=row[5],
-            )
-
-            db_instance.add(dr)
+        db_instance.add(dr)
 
     db_instance.commit()
 
