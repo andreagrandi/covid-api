@@ -133,6 +133,3 @@ covid-reports.db
 
 # Postgres database files if running in docker
 tmp/
-
-# Dataflows
-.checkpoints

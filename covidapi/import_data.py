@@ -3,12 +3,12 @@ from db.database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
-from dataflows import Flow, load, checkpoint
+from requests import Session
+from requests.exceptions import HTTPError
 from collections import defaultdict
-from tabulator.exceptions import HTTPError
+from typing import Optional
 import argparse
-
-BASE_URL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+import csv
 
 parser = argparse.ArgumentParser(description='Import data into the database')
 parser.add_argument(
@@ -20,13 +20,31 @@ parser.add_argument(
 )
 
 
-def get_data_with_caching(date_string):
-    result = Flow(
-      load(f'{BASE_URL}{date_string}.csv', infer_strategy=load.INFER_STRINGS, cast_strategy=load.CAST_TO_STRINGS),
-      checkpoint(date_string),
-    ).results()
+class ReportFetcher:
+    """
+    Fetch the raw data from Github
+    """
+    BASE_URL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
 
-    return result[0][0]
+    def __init__(self):
+        self.session = Session()
+
+    def fetch_report(self, report_date):
+        date_string = report_date.strftime(r'%m-%d-%Y')
+
+        response = self.session.get(f'{self.BASE_URL}{date_string}.csv')
+        response.raise_for_status()
+
+        records = []
+        for record in csv.DictReader((line.decode('utf8') for line in response.iter_lines())):
+            if '\ufeffProvince/State' in record:
+                # 2020-03-13 includes this invisible character, which messed up the column names
+                # see https://github.com/CSSEGISandData/COVID-19/pull/1738
+                record['Province/State'] = record['\ufeffProvince/State']
+
+            records.append(record)
+
+        return records
 
 
 def deduplicate(db_instance, to_deduplicate):
@@ -46,7 +64,7 @@ def deduplicate(db_instance, to_deduplicate):
                 raise Exception('Duplicate records have different numbers. Giving up.')
 
 
-def get_daily_report_by_region_and_date(db: Session, country_region: str, province_state: str, fips: str, admin2: str, last_update: datetime) -> DailyReport:
+def get_daily_report_by_region_and_date(db: Session, country_region: str, province_state: Optional[str], fips: Optional[str], admin2: Optional[str], last_update: datetime) -> DailyReport:
     """
     Get a single daily report from the db by matching some kind of region and the date.
 
@@ -96,7 +114,7 @@ DUPLICATE_ADMIN2 = {
     'Walla Walla County': 'Walla Walla',
 }
 
-def clean_admin2(original):
+def clean_admin2(original: Optional[str]):
     """
     Some US records are duplicated.
     These have the same FIPS (which should be unique) but slightly
@@ -104,7 +122,12 @@ def clean_admin2(original):
 
     Normalise these to a single name so we can deduplicate them.
     """
-    return DUPLICATE_ADMIN2.get(original, original)
+    value = clean_optional_field(original)
+    return DUPLICATE_ADMIN2.get(value, value) if value else None
+
+
+def clean_optional_field(original: Optional[str]) -> Optional[str]:
+    return original if original else None
 
 
 def sanity_check(db_instance):
@@ -160,20 +183,23 @@ def sanity_check(db_instance):
     print('Unique country records ✅')
 
 
-def import_daily_report(report_date: date):
+def import_daily_report(report):
     db_instance = SessionLocal()
     to_deduplicate = defaultdict(list)
-    formatted_report_date = report_date.strftime(r'%m-%d-%Y')
 
-    for row in get_data_with_caching(formatted_report_date):
+    for row in report:
         last_update_str = row.get('Last Update') or row['Last_Update']
         last_update = datetime.fromisoformat(last_update_str)
 
         # Region identifiers
         country_region = row.get('Country_Region') or row['Country/Region']
         province_state = row.get('Province_State') or row.get('Province/State')
-        admin2 = clean_admin2(row.get('Admin2'))
-        fips = row.get('FIPS')
+        admin2 = row.get('Admin2')
+        fips = row.get('fips')
+
+        province_state = clean_optional_field(province_state)
+        fips = clean_optional_field(fips)
+        admin2 = clean_admin2(admin2)
 
         # Measures
         confirmed = int(row['Confirmed'])
@@ -233,6 +259,8 @@ if __name__ == "__main__":
     today = date.today()
     current = args.from_date
 
+    report_fetcher = ReportFetcher()
+
     while current <= today:
         if current == date(year=2020, month=3, day=22):
             # Skip this report for now,
@@ -243,8 +271,10 @@ if __name__ == "__main__":
 
         print(f'Importing data for {current}')
 
+        report = report_fetcher.fetch_report(current)
+
         try:
-            import_daily_report(current)
+            import_daily_report(report)
         except HTTPError:
             if current == today:
                 print('Unable to fetch report. It may not be available yet.')
