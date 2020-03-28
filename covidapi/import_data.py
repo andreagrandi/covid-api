@@ -2,9 +2,10 @@ from db.models import DailyReport
 from db.database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from dataflows import Flow, load, checkpoint
 from collections import defaultdict
+from tabulator.exceptions import HTTPError
 
 BASE_URL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
 
@@ -47,7 +48,8 @@ def get_daily_report_by_region_and_date(db: Session, country_region: str, provin
     """
     if fips:
         dr = db.query(DailyReport).filter(
-            DailyReport.fips == fips
+            DailyReport.fips == fips,
+            DailyReport.last_update == last_update
         )
     elif province_state and admin2:
         dr = db.query(DailyReport).filter(
@@ -78,7 +80,10 @@ def get_daily_report_by_region_and_date(db: Session, country_region: str, provin
 
 
 DUPLICATE_ADMIN2 = {
-    'Dona Ana': 'Doña Ana'
+    'Dona Ana': 'Doña Ana',
+    'Elko County': 'Elko',
+    'Garfield County': 'Garfield',
+    'Walla Walla County': 'Walla Walla',
 }
 
 def clean_admin2(original):
@@ -145,14 +150,12 @@ def sanity_check(db_instance):
     print('Unique country records ✅')
 
 
-def main():
-    print("Importing data into db")
-
-    Base.metadata.create_all(engine)
+def import_daily_report(report_date: date):
     db_instance = SessionLocal()
     to_deduplicate = defaultdict(list)
+    formatted_report_date = report_date.strftime(r'%m-%d-%Y')
 
-    for row in get_data_with_caching('03-27-2020'):
+    for row in get_data_with_caching(formatted_report_date):
         last_update_str = row.get('Last Update') or row['Last_Update']
         last_update = datetime.fromisoformat(last_update_str)
 
@@ -213,4 +216,30 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    Base.metadata.create_all(engine)
+
+    first_record = date(year=2020, month=2, day=29)
+    today = date.today()
+    current = first_record
+
+    while current <= today:
+        if current == date(year=2020, month=3, day=22):
+            # Skip this report for now,
+            # this commit changed the timestamp format, and apparently added duplicates as well
+            # https://github.com/CSSEGISandData/COVID-19/commit/f5963e75b11ef35894657c5fd4d96a1690a20696#diff-6b1c9a83928deda4b1f61bf59cd9d68f
+            current = current + timedelta(days=1)
+            continue
+
+        print(f'Importing data for {current}')
+
+        try:
+            import_daily_report(current)
+        except HTTPError:
+            if current == today:
+                print('Unable to fetch report. It may not be available yet.')
+                break
+            else:
+                print('Unable to fetch report')
+                raise
+
+        current = current + timedelta(days=1)
