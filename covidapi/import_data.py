@@ -156,31 +156,7 @@ def sanity_check(db_instance):
         db_instance.rollback()
         raise Exception(f'Found records with the same country_region, province_state, admin2, last_update and no FIPS')
 
-    print('Unique admin2 records ✅')
-
-    if db_instance.execute('''
-        select 1
-        from daily_reports
-        where province_state is null
-        group by country_region, last_update
-        having count(*) > 1
-        ''').fetchone():
-        db_instance.rollback()
-        raise Exception(f'Found records with the same country_region and last_update, and no province_state')
-
-    print('Unique province/state records ✅')
-
-    if db_instance.execute('''
-        select 1
-        from daily_reports
-        where admin2 is null
-        group by country_region, province_state, last_update
-        having count(*) > 1
-        ''').fetchone():
-        db_instance.rollback()
-        raise Exception(f'Found records with the same country_region, province_state and last_update, and no admin2')
-
-    print('Unique country records ✅')
+    print('Unique admin2/province_state/country_region records ✅')
 
 
 def import_daily_report(report):
