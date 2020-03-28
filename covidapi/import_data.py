@@ -46,9 +46,10 @@ def main():
     db_instance = SessionLocal()
 
     for row in get_data_with_caching('02-29-2020'):
-        province_state = row['Province/State']
-        country_region = row['Country/Region']
-        last_update = datetime.fromisoformat(row['Last Update'])
+        province_state = row.get('Province_State') or row['Province/State']
+        country_region = row.get('Country_Region') or row['Country/Region']
+        last_update_str = row.get('Last Update') or row['Last_Update']
+        last_update = datetime.fromisoformat(last_update_str)
 
         try:
             dr = get_daily_report_by_region_and_date(
