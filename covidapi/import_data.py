@@ -92,6 +92,59 @@ def clean_admin2(original):
     return DUPLICATE_ADMIN2.get(original, original)
 
 
+def sanity_check(db_instance):
+    """
+    Run some checks on the database before we commit
+    """
+    if db_instance.execute('''
+        select 1
+        from daily_reports
+        where fips is not null
+        group by fips, last_update
+        having count(*) > 1
+        ''').fetchone():
+        db_instance.rollback()
+        raise Exception(f'Found records with the same FIPS and last_update')
+
+    print('Unique FIPS codes ✅')
+
+    if db_instance.execute('''
+        select 1
+        from daily_reports
+        where fips is null
+        group by country_region, province_state, admin2, last_update
+        having count(*) > 1
+        ''').fetchone():
+        db_instance.rollback()
+        raise Exception(f'Found records with the same country_region, province_state, admin2, last_update and no FIPS')
+
+    print('Unique admin2 records ✅')
+
+    if db_instance.execute('''
+        select 1
+        from daily_reports
+        where province_state is null
+        group by country_region, last_update
+        having count(*) > 1
+        ''').fetchone():
+        db_instance.rollback()
+        raise Exception(f'Found records with the same country_region and last_update, and no province_state')
+
+    print('Unique province/state records ✅')
+
+    if db_instance.execute('''
+        select 1
+        from daily_reports
+        where admin2 is null
+        group by country_region, province_state, last_update
+        having count(*) > 1
+        ''').fetchone():
+        db_instance.rollback()
+        raise Exception(f'Found records with the same country_region, province_state and last_update, and no admin2')
+
+    print('Unique country records ✅')
+
+
 def main():
     print("Importing data into db")
 
@@ -154,7 +207,8 @@ def main():
             to_deduplicate[dr.admin2].append(dr)
 
     deduplicate(db_instance, to_deduplicate)
-
+    db_instance.flush()
+    sanity_check(db_instance)
     db_instance.commit()
 
 
