@@ -6,7 +6,7 @@ from typing import Optional
 class DailyReport(BaseModel):
     id: Optional[int]
     country_region: str
-    province_state: str
+    province_state: Optional[str]
     last_update: datetime
     confirmed: int
     deaths: int
