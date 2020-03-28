@@ -6,8 +6,18 @@ from datetime import datetime, date, timedelta
 from dataflows import Flow, load, checkpoint
 from collections import defaultdict
 from tabulator.exceptions import HTTPError
+import argparse
 
 BASE_URL = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/'
+
+parser = argparse.ArgumentParser(description='Import data into the database')
+parser.add_argument(
+    '--from-date',
+    metavar='DATE',
+    type=date.fromisoformat,
+    default=date(year=2020, month=2, day=29),
+    help='date to start importing from (default: 2020-02-29)'
+)
 
 
 def get_data_with_caching(date_string):
@@ -216,11 +226,12 @@ def import_daily_report(report_date: date):
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+
     Base.metadata.create_all(engine)
 
-    first_record = date(year=2020, month=2, day=29)
     today = date.today()
-    current = first_record
+    current = args.from_date
 
     while current <= today:
         if current == date(year=2020, month=3, day=22):
