@@ -1,0 +1,39 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+executors:
+  covidapi-test:
+    resource_class: small
+    docker:
+      - image: circleci/python:3.8.2
+        environment:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost/circle_test'
+      - image: circleci/postgres:12.2
+        environment:
+          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_USER: 'postgres'
+
+jobs:
+  build-and-test:
+    executor: covidapi-test
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+            pip install -r requirements-test.txt
+      - run:
+          name: Run pytest
+          command: |
+            . venv/bin/activate
+            pytest
+
+workflows:
+  main:
+    jobs:
+      - build-and-test
