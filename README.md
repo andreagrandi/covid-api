@@ -1,6 +1,8 @@
 # covid-api
 COVID19 Api based on Johns Hopkins CSSE data
 
+[![CircleCI](https://circleci.com/gh/andreagrandi/covid-api.svg?style=svg)](https://circleci.com/gh/andreagrandi/covid-api)
+
 The intent of this project is to create an API which will make easier to access the COVID19 reports provided by the Johns Hopkins CSSE: https://github.com/CSSEGISandData/COVID-19
 
 # Status
