@@ -55,6 +55,8 @@ The API will be served at [http://localhost:8000/](http://localhost:8000/)
 The API docs are served at [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Deployment
+The lastest `master` branch is automatically deployed to Heroku whenever a pull request is merged (and tests are passing on CircleCI).
+
 See [deploying to heroku](./docs/heroku-deploy.md).
 
 ## Sponsors and Thanks
