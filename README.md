@@ -56,3 +56,7 @@ The API docs are served at [http://localhost:8000/docs](http://localhost:8000/do
 
 ## Deployment
 See [deploying to heroku](./docs/heroku-deploy.md).
+
+## Sponsors and Thanks
+
+- [Heroku](https://www.heroku.com): for sponsoring the costs of running the service
