@@ -247,9 +247,8 @@ if __name__ == "__main__":
 
         print(f'Importing data for {current}')
 
-        report = report_fetcher.fetch_report(current)
-
         try:
+            report = report_fetcher.fetch_report(current)
             import_daily_report(report)
         except HTTPError:
             if current == today:
