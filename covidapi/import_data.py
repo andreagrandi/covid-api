@@ -17,6 +17,8 @@ parser.add_argument(
     default=date(year=2020, month=2, day=29),
     help='date to start importing from (default: 2020-02-29)'
 )
+parser.add_argument("--all", help="import all the available data", action="store_true")
+parser.add_argument("--latest", help="import last couple of days of data", action="store_true")
 
 
 class ReportFetcher:
@@ -241,7 +243,14 @@ if __name__ == "__main__":
     Base.metadata.create_all(engine)
 
     today = date.today()
-    current = args.from_date
+
+    if args.all:
+        # Available data starts from 29th February 2020
+        current = date.fromisoformat('2020-02-29')
+    elif args.latest:
+        current = today - timedelta(days=1)
+    else:
+        current = args.from_date
 
     report_fetcher = ReportFetcher()
 
