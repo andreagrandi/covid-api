@@ -1,6 +1,5 @@
 from db.models import DailyReport
 from db.database import SessionLocal, engine, Base
-from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
 from requests import Session
@@ -64,7 +63,11 @@ def deduplicate(db_instance, to_deduplicate):
                 raise Exception('Duplicate records have different numbers. Giving up.')
 
 
-def get_daily_report_by_region_and_date(db: Session, country_region: str, province_state: Optional[str], fips: Optional[str], admin2: Optional[str], last_update: datetime) -> DailyReport:
+def get_daily_report_by_region_and_date(
+        db: SessionLocal, country_region: str,
+        province_state: Optional[str],
+        fips: Optional[str],
+        admin2: Optional[str], last_update: datetime) -> DailyReport:
     """
     Get a single daily report from the db by matching some kind of region and the date.
 
@@ -113,6 +116,7 @@ DUPLICATE_ADMIN2 = {
     'Garfield County': 'Garfield',
     'Walla Walla County': 'Walla Walla',
 }
+
 
 def clean_admin2(original: Optional[str]):
     """
@@ -187,16 +191,16 @@ def import_daily_report(report):
                 db=db_instance,
                 province_state=province_state,
                 country_region=country_region,
-                admin2 = admin2,
-                fips = fips,
+                admin2=admin2,
+                fips=fips,
                 last_update=last_update
             )
         except NoResultFound:
             dr = DailyReport(
                 province_state=province_state,
                 country_region=country_region,
-                admin2 = admin2,
-                fips = fips,
+                admin2=admin2,
+                fips=fips,
                 last_update=last_update,
                 confirmed=confirmed,
                 deaths=deaths,
@@ -221,7 +225,11 @@ def import_daily_report(report):
         if dr.admin2 in DUPLICATE_ADMIN2.values():
             to_deduplicate[dr.admin2].append(dr)
 
-    deduplicate(db_instance, to_deduplicate)
+    try:
+        deduplicate(db_instance, to_deduplicate)
+    except Exception:
+        print(f'Cannot deduplicate day {last_update_str}')
+
     db_instance.flush()
     sanity_check(db_instance)
     db_instance.commit()
