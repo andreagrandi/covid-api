@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 
-class DailyReport(BaseModel):
+class JHDailyReport(BaseModel):
     id: Optional[int]
     country_region: str
     province_state: Optional[str]

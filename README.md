@@ -40,7 +40,7 @@ pip install -r requirements.txt
 To import the data, run
 
 ```
-python covidapi/import_data.py
+python covidapi/import_data_jh.py
 ```
 
 Then you can run the app with:

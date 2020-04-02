@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer, String, DateTime, inspect
 from .database import Base, engine
 
 
-class DailyReport(Base):
-    __tablename__ = "daily_reports"
+class JHDailyReport(Base):
+    __tablename__ = "jh_daily_reports"
 
     id = Column(Integer, primary_key=True, index=True)
     country_region = Column(String)

@@ -1,4 +1,4 @@
-from db.models import DailyReport
+from db.models import JHDailyReport
 from db.database import SessionLocal, engine, Base
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
@@ -69,7 +69,7 @@ def get_daily_report_by_region_and_date(
         db: SessionLocal, country_region: str,
         province_state: Optional[str],
         fips: Optional[str],
-        admin2: Optional[str], last_update: datetime) -> DailyReport:
+        admin2: Optional[str], last_update: datetime) -> JHDailyReport:
     """
     Get a single daily report from the db by matching some kind of region and the date.
 
@@ -80,33 +80,33 @@ def get_daily_report_by_region_and_date(
     and province_state.
     """
     if fips:
-        dr = db.query(DailyReport).filter(
-            DailyReport.fips == fips,
-            DailyReport.last_update == last_update
+        dr = db.query(JHDailyReport).filter(
+            JHDailyReport.fips == fips,
+            JHDailyReport.last_update == last_update
         )
     elif province_state and admin2:
-        dr = db.query(DailyReport).filter(
-            DailyReport.province_state == province_state,
-            DailyReport.country_region == country_region,
-            DailyReport.admin2 == admin2,
-            DailyReport.fips.is_(None),
-            DailyReport.last_update == last_update
+        dr = db.query(JHDailyReport).filter(
+            JHDailyReport.province_state == province_state,
+            JHDailyReport.country_region == country_region,
+            JHDailyReport.admin2 == admin2,
+            JHDailyReport.fips.is_(None),
+            JHDailyReport.last_update == last_update
         )
     elif province_state:
-        dr = db.query(DailyReport).filter(
-            DailyReport.fips.is_(None),
-            DailyReport.admin2.is_(None),
-            DailyReport.province_state == province_state,
-            DailyReport.country_region == country_region,
-            DailyReport.last_update == last_update
+        dr = db.query(JHDailyReport).filter(
+            JHDailyReport.fips.is_(None),
+            JHDailyReport.admin2.is_(None),
+            JHDailyReport.province_state == province_state,
+            JHDailyReport.country_region == country_region,
+            JHDailyReport.last_update == last_update
         )
     else:
-        dr = db.query(DailyReport).filter(
-            DailyReport.fips.is_(None),
-            DailyReport.admin2.is_(None),
-            DailyReport.province_state.is_(None),
-            DailyReport.country_region == country_region,
-            DailyReport.last_update == last_update
+        dr = db.query(JHDailyReport).filter(
+            JHDailyReport.fips.is_(None),
+            JHDailyReport.admin2.is_(None),
+            JHDailyReport.province_state.is_(None),
+            JHDailyReport.country_region == country_region,
+            JHDailyReport.last_update == last_update
         )
 
     return dr.one()
@@ -198,7 +198,7 @@ def import_daily_report(report):
                 last_update=last_update
             )
         except NoResultFound:
-            dr = DailyReport(
+            dr = JHDailyReport(
                 province_state=province_state,
                 country_region=country_region,
                 admin2=admin2,
