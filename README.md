@@ -13,7 +13,7 @@ Using this API researchers can concentrate their efforts on data analysis while 
 
 # Status
 
-We have essentially reached an MVP status (see #20 for more information) and live data is available at https://api.covid19data.cloud/docs
+We have essentially reached an MVP status (see #20 for more information) and live data is available at https://api.covid19data.cloud
 
 Now we are working on improving features (like adding more query filters for existing endpoints) and better cleaning the available data.
 
@@ -47,6 +47,8 @@ Out[3]:
   'deaths': 13915,
   'recovered': 18278}]
 ```
+
+Further API documentation is available at https://api.covid19data.cloud/docs
 
 # Development Setup
 
