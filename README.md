@@ -1,15 +1,54 @@
 # covid-api
-COVID19 Api based on Johns Hopkins CSSE data
+
+COVID19 Api based on Johns Hopkins CSSE data (more data sources are coming).
 
 [![CircleCI](https://circleci.com/gh/andreagrandi/covid-api.svg?style=svg)](https://circleci.com/gh/andreagrandi/covid-api)
 
-The intent of this project is to create an API which will make easier to access the COVID19 reports provided by the Johns Hopkins CSSE: https://github.com/CSSEGISandData/COVID-19
+The intent of this project is to create an API which will make easier to access the COVID19 reports provided by the Johns Hopkins CSSE and other data sources available.
+Using this API researchers can concentrate their efforts on data analysis while we take care of retriving the data, cleaning it and keeping the database always updated.
+
+# Data Sources
+
+- Johns Hopkins CSSE: https://github.com/CSSEGISandData/COVID-19
 
 # Status
 
-We are in the early phase of the project and framework, architectural and other decisions haven't been taken yet. Please help discussing them in the GitHub **Issues** section of this project.
+We have essentially reached an MVP status (see #20 for more information) and live data is available at https://api.covid19data.cloud/docs
 
-# Project setup
+Now we are working on improving features (like adding more query filters for existing endpoints) and better cleaning the available data.
+
+The next steps will be to add more data sources.
+
+# Usage Example
+
+```
+In [1]: import requests
+
+In [2]: response = requests.get('https://api.covid19data.cloud/v1/jh/daily-reports?last_update_from=2020-04-01&last_update_to=2020-04-03&country=Italy')
+
+In [3]: response.json()
+Out[3]:
+[{'id': 35343,
+  'country_region': 'Italy',
+  'province_state': None,
+  'fips': None,
+  'admin2': None,
+  'last_update': '2020-04-01T21:58:34',
+  'confirmed': 110574,
+  'deaths': 13155,
+  'recovered': 16847},
+ {'id': 37895,
+  'country_region': 'Italy',
+  'province_state': None,
+  'fips': None,
+  'admin2': None,
+  'last_update': '2020-04-02T23:25:14',
+  'confirmed': 115242,
+  'deaths': 13915,
+  'recovered': 18278}]
+```
+
+# Development Setup
 
 ## Postgres database
 You will need a postgres database to run the application.
@@ -59,6 +98,12 @@ The lastest `master` branch is automatically deployed to Heroku whenever a pull 
 
 See [deploying to heroku](./docs/heroku-deploy.md).
 
-## Sponsors and Thanks
+# Sponsors and Thanks
 
 - [Heroku](https://www.heroku.com): for sponsoring the costs of running the service
+
+# Disclaimer
+
+We are doing our best to keep the available data updated, clean (removing duplicates), and to provide a reliable service, but we are not in any way responsible for the accuracy of the data nor for the availability of the service itself. Please **use it at your own risk**.
+
+**Abuse notice:** we are currently not requiring any registration or authentication to use this service because we would like to keep the service as simple as possible. Please do not abuse the service or you will force use to require a registration (subject to approval) to continue using the service.
