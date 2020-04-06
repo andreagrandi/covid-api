@@ -19,7 +19,7 @@ Now we are working on improving features (like adding more query filters for exi
 
 The next steps will be to add more data sources.
 
-# Usage Example
+# Usage Example (Python)
 
 ```
 In [1]: import requests
@@ -108,4 +108,4 @@ See [deploying to heroku](./docs/heroku-deploy.md).
 
 We are doing our best to keep the available data updated, clean (removing duplicates), and to provide a reliable service, but we are not in any way responsible for the accuracy of the data nor for the availability of the service itself. Please **use it at your own risk**.
 
-**Abuse notice:** we are currently not requiring any registration or authentication to use this service because we would like to keep it as simple as possible. Please do not abuse the service or you will force use to require a registration (subject to approval) to continue using it.
+**Abuse notice:** we are currently not requiring any registration or authentication to use this service because we would like to keep it as simple as possible. Please do not abuse the service or you will force us to require a registration (subject to approval) to continue using it.
