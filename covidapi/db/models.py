@@ -1,6 +1,20 @@
-from sqlalchemy import Column, Integer, String, DateTime, inspect
+from sqlalchemy import Column, Integer, String, DateTime, Enum, inspect
 
 from .database import Base, engine
+from ..schemas.enums import Scope
+
+
+class JHRegionInfo(Base):
+    __tablename__ = "jh_region_info"
+
+    jh_id = Column(Integer, primary_key=True, index=True)
+    scope = Column(Enum(Scope))
+    country_code_iso2 = Column(String(length=2))
+    country_code_iso3 = Column(String(length=3))
+    country_region = Column(String)
+    province_state = Column(String)
+    fips = Column(String)
+    admin2 = Column(String)
 
 
 class JHDailyReport(Base):

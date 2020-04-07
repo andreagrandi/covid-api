@@ -81,7 +81,9 @@ pip install -r requirements.txt
 To import the data, run
 
 ```
+python import_data.py jh_regions
 python import_data.py jh --all
+points for import scripts
 ```
 
 Then you can run the app with:
