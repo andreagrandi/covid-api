@@ -17,7 +17,7 @@ We have essentially reached an MVP status (see #20 for more information) and liv
 
 Now we are working on improving features (like adding more query filters for existing endpoints) and better cleaning the available data.
 
-The next steps will be to add more data sources.
+The next step will be to add more data sources.
 
 # Usage Example (Python)
 
