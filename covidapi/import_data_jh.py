@@ -1,5 +1,5 @@
-from db.models import JHDailyReport
-from db.database import SessionLocal, engine, Base
+from .db.models import JHDailyReport
+from .db.database import SessionLocal, engine, Base
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
 from requests import Session
@@ -249,7 +249,7 @@ def import_daily_report(report):
     db_instance.commit()
 
 
-if __name__ == "__main__":
+def main():
     args = parser.parse_args()
 
     Base.metadata.create_all(engine)
