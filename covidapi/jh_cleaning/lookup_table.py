@@ -1,110 +1,16 @@
 import requests
 import csv
-from typing import NamedTuple, Optional
-from ..schemas.enums import Scope
-
-
-class RegionNames(NamedTuple):
-    """
-    A set of region names that may be matched to an IdentifiedRegion
-    """
-    admin2: Optional[str]
-    province_state: Optional[str]
-    country_region: str
-
-    @staticmethod
-    def parse_from_lookup_table(record):
-        admin2 = record['Admin2']
-        province_state = record['Province_State']
-
-        return RegionNames(
-            admin2 = admin2 if admin2 else None,
-            province_state = province_state if province_state else None,
-            country_region = record['Country_Region'],
-        )
-
-    @property
-    def scope(self):
-        if self.admin2:
-            return Scope.ADMIN2
-        elif self.province_state:
-            return Scope.PROVINCE_STATE
-        else:
-            return Scope.COUNTRY_REGION
-
-
-class LatLong(NamedTuple):
-    """
-    A geographic coordinate
-    """
-    latitude: float
-    longitude: float
-
-    @staticmethod
-    def parse_from_lookup_table(record):
-        try:
-            latitude = float(record['Lat'])
-            longitude = float(record['Long_'])
-        except ValueError:
-            return None
-        else:
-            return LatLong(latitude=latitude, longitude=longitude)
-
-
-class IdentifiedRegion(NamedTuple):
-    """
-    A region that:
-
-    - has a unique identifier
-    - is matched to a country code, and optionally a FIPS code (US)
-    - is classified as country/region, province/state, or admin2
-    """
-    uid: int
-    fips: Optional[str]
-    iso2: str
-    iso3: str
-    scope: Scope
-
-    @staticmethod
-    def parse_from_lookup_table(record, scope):
-        fips = record['FIPS']
-
-        return IdentifiedRegion(
-            fips = fips if fips else None,
-            iso2 = record['iso2'],
-            iso3 = record['iso3'],
-            uid = int(record['UID']),
-            scope = scope
-        )
-
-
-class RegionInfo(NamedTuple):
-    """
-    Everything we know about a region
-    """
-    identified_region: IdentifiedRegion
-    region_names: RegionNames
-    population: Optional[int]
-    combined_key: str
-    coordinates: Optional[LatLong]
-
-    @staticmethod
-    def parse_from_lookup_table(record):
-        combined_key = record['Combined_Key']
-        region_names = RegionNames.parse_from_lookup_table(record)
-        identified_region = IdentifiedRegion.parse_from_lookup_table(record, region_names.scope)
-        population = int(record['Population']) if record['Population'] else None
-
-        return RegionInfo(
-            identified_region=identified_region,
-            region_names=region_names,
-            population=population,
-            combined_key=combined_key,
-            coordinates = LatLong.parse_from_lookup_table(record)
-        )
+from .county_admin2_map import map_county_to_admin2
+from .country_map import map_countries
+from .boat_map import map_boat_passengers
+from .region_info import RegionInfo
 
 
 class Matcher():
+    """
+    Maps a daily report to a canonical region from the lookup table
+    (https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv)
+    """
     def __init__(self):
         self.region_matches = {}
         self.key_matches = {}
@@ -112,12 +18,28 @@ class Matcher():
         self._fetch()
 
     def match_region(self, region_match):
-        return self.region_matches[region_match]
+        """
+        Attempt to lookup a region using the names provided
+        """
+        try:
+            return self.region_matches[region_match]
+        except KeyError:
+            # Region names are not used consistently, so account for some
+            # inconsistencies before trying the lookup
+            fuzzy = map_countries(region_match)
+            fuzzier = map_county_to_admin2(fuzzy) if fuzzy else None
+            fuzziest = map_boat_passengers(fuzzier) if fuzzier else None
 
-    def match_combined_key(self, combined_key):
-        return self.key_matches[combined_key]
+            try:
+                return self.region_matches[fuzziest] if fuzziest else None
+            except KeyError:
+                print(fuzziest)
+                raise
 
     def lookup_by_id(self, uid):
+        """
+        Lookup by the ID JH provide in the lookup table
+        """
         return self.by_id[uid]
 
     def __iter__(self):

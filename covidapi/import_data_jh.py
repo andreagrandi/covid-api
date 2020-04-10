@@ -1,5 +1,7 @@
 from .db.models import JHDailyReport
 from .db.database import SessionLocal, engine, Base
+from .jh_cleaning.lookup_table import Matcher
+from .jh_cleaning.region_info import RegionNames
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
 from requests import Session
@@ -161,7 +163,7 @@ def sanity_check(db_instance):
         raise Exception(f'Found records with the same country_region, province_state, admin2, last_update and no FIPS')
 
 
-def import_daily_report(report):
+def import_daily_report(report, matcher):
     db_instance = SessionLocal()
     to_deduplicate = defaultdict(list)
 
@@ -178,6 +180,14 @@ def import_daily_report(report):
         province_state = clean_optional_field(province_state)
         fips = clean_optional_field(fips)
         admin2 = clean_admin2(admin2)
+
+        region_names = RegionNames.parse_from_report(row)
+
+        try:
+            region_info = matcher.match_region(region_names)
+        except KeyError:
+            print('No match')
+            print(row)
 
         # Measures
         confirmed = int(row['Confirmed'])
@@ -247,13 +257,14 @@ def main(args):
         current = args.from_date
 
     report_fetcher = ReportFetcher()
+    matcher = Matcher()
 
     while current <= today:
         print(f'Importing data for {current}')
 
         try:
             report = report_fetcher.fetch_report(current)
-            import_daily_report(report)
+            import_daily_report(report, matcher)
         except HTTPError:
             if current == today:
                 print('Unable to fetch report. It may not be available yet.')
