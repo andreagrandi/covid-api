@@ -150,8 +150,6 @@ def sanity_check(db_instance):
         db_instance.rollback()
         raise Exception(f'Found records with the same FIPS and last_update')
 
-    print('Unique FIPS codes ✅')
-
     if db_instance.execute('''
         select 1
         from daily_reports
@@ -161,8 +159,6 @@ def sanity_check(db_instance):
         ''').fetchone():
         db_instance.rollback()
         raise Exception(f'Found records with the same country_region, province_state, admin2, last_update and no FIPS')
-
-    print('Unique admin2/province_state/country_region records ✅')
 
 
 def import_daily_report(report):
