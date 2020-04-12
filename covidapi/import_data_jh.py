@@ -21,6 +21,18 @@ parser.add_argument("--all", help="import all the available data", action="store
 parser.add_argument("--latest", help="import last couple of days of data", action="store_true")
 
 
+def parse_datetime(date_str):
+    """
+    Parse "last updated" datetimes according to known formats
+    """
+    if not date_str:
+        raise ValueError('Date is missing')
+    try:
+        return datetime.fromisoformat(date_str)
+    except ValueError:
+        return datetime.strptime(date_str, r'%m/%d/%y %H:%M')
+
+
 class ReportFetcher:
     """
     Fetch the raw data from Github
@@ -171,7 +183,7 @@ def import_daily_report(report):
 
     for row in report:
         last_update_str = row.get('Last Update') or row['Last_Update']
-        last_update = datetime.fromisoformat(last_update_str)
+        last_update = parse_datetime(last_update_str)
 
         # Region identifiers
         country_region = row.get('Country_Region') or row['Country/Region']
@@ -225,12 +237,12 @@ def import_daily_report(report):
 
         # Track potentially duplicated admin2s
         if dr.admin2 in DUPLICATE_ADMIN2.values():
-            to_deduplicate[dr.admin2].append(dr)
+            to_deduplicate[(dr.country_region, dr.province_state, dr.admin2)].append(dr)
 
     try:
         deduplicate(db_instance, to_deduplicate)
     except Exception:
-        print(f'Cannot deduplicate day {last_update_str}')
+        print(f'Cannot deduplicate')
 
     db_instance.flush()
     sanity_check(db_instance)
@@ -255,13 +267,6 @@ if __name__ == "__main__":
     report_fetcher = ReportFetcher()
 
     while current <= today:
-        if current == date(year=2020, month=3, day=22):
-            # Skip this report for now,
-            # this commit changed the timestamp format, and apparently added duplicates as well
-            # https://github.com/CSSEGISandData/COVID-19/commit/f5963e75b11ef35894657c5fd4d96a1690a20696#diff-6b1c9a83928deda4b1f61bf59cd9d68f
-            current = current + timedelta(days=1)
-            continue
-
         print(f'Importing data for {current}')
 
         try:
