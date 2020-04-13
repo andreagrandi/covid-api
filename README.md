@@ -81,8 +81,7 @@ pip install -r requirements.txt
 To import the data, run
 
 ```
-python setup.py develop
-import_data_jh
+python import_data.py jh --all
 ```
 
 Then you can run the app with:

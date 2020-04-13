@@ -6,19 +6,7 @@ from requests import Session
 from requests.exceptions import HTTPError
 from collections import defaultdict
 from typing import Optional
-import argparse
 import csv
-
-parser = argparse.ArgumentParser(description='Import data into the database')
-parser.add_argument(
-    '--from-date',
-    metavar='DATE',
-    type=date.fromisoformat,
-    default=date(year=2020, month=2, day=29),
-    help='date to start importing from (default: 2020-02-29)'
-)
-parser.add_argument("--all", help="import all the available data", action="store_true")
-parser.add_argument("--latest", help="import last couple of days of data", action="store_true")
 
 
 def parse_datetime(date_str):
@@ -249,9 +237,7 @@ def import_daily_report(report):
     db_instance.commit()
 
 
-def main():
-    args = parser.parse_args()
-
+def main(args):
     Base.metadata.create_all(engine)
 
     today = date.today()
