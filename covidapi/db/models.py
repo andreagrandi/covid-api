@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, inspect
+from sqlalchemy import Column, Integer, String, DateTime, Enum, inspect, ForeignKey
+from sqlalchemy.orm import relationship
 
 from .database import Base, engine
 from ..schemas.enums import Scope
@@ -15,7 +16,7 @@ class JHRegionInfo(Base):
     province_state = Column(String)
     fips = Column(String)
     admin2 = Column(String)
-
+    reports = relationship("JHDailyReport", backref='region_info')
 
 class JHDailyReport(Base):
     __tablename__ = "jh_daily_reports"
@@ -29,6 +30,7 @@ class JHDailyReport(Base):
     confirmed = Column(Integer)
     deaths = Column(Integer)
     recovered = Column(Integer)
+    jh_id = Column(Integer, ForeignKey('jh_region_info.jh_id'))
 
     def __repr__(self):
         state = inspect(self)

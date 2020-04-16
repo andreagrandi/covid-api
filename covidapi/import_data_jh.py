@@ -188,6 +188,7 @@ def import_daily_report(report, matcher):
         except KeyError:
             print('No match')
             print(row)
+            region_info = None
 
         # Measures
         confirmed = int(row['Confirmed'])
@@ -213,6 +214,7 @@ def import_daily_report(report, matcher):
                 confirmed=confirmed,
                 deaths=deaths,
                 recovered=recovered,
+                jh_id=region_info.identified_region.uid if region_info else None
             )
         except Exception:
             print(f'Invalid row: {row!r}')
