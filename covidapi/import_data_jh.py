@@ -144,7 +144,7 @@ def sanity_check(db_instance):
     """
     if db_instance.execute('''
         select 1
-        from daily_reports
+        from jh_daily_reports
         where fips is not null
         group by fips, last_update
         having count(*) > 1
@@ -154,7 +154,7 @@ def sanity_check(db_instance):
 
     if db_instance.execute('''
         select 1
-        from daily_reports
+        from jh_daily_reports
         where fips is null
         group by country_region, province_state, admin2, last_update
         having count(*) > 1
