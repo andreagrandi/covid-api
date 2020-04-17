@@ -65,7 +65,9 @@ This creates an empty database called `covidapi`, and a user called `covidapi` w
 ## Running the app through docker
 If you run `docker-compose up` instead of `docker-compose up db`, the whole app will be run inside docker as well.
 
-The first time you do this you will need to run `docker-compose exec app python /covidapi/covidapi/import_data.py` to import the data.
+The first time you do this you will need to run
+
+`alembic upgrade head` to create the database schema, and then `docker-compose exec app python /covidapi/covidapi/import_data.py` to import the data.
 
 ## Running the app directly
 To run the app directly you will need python 3.7 or later.
@@ -81,6 +83,7 @@ pip install -r requirements.txt
 To import the data, run
 
 ```
+alembic upgrade head
 python import_data.py jh_regions
 python import_data.py jh --all
 points for import scripts
@@ -96,6 +99,12 @@ uvicorn covidapi.app:app --reload
 The API will be served at [http://localhost:8000/](http://localhost:8000/)
 
 The API docs are served at [http://localhost:8000/docs](http://localhost:8000/docs)
+
+## Upgrading the schema
+We are using [alembic](https://alembic.sqlalchemy.org/) to version the database schema.
+
+- to upgrade your database to the latest version, run `alembic upgrade head`
+- after you've changed SQLAlchemy models, run `alembic revision --autogenerate -m 'description of migration'` to create a new version
 
 ## Deployment
 The lastest `master` branch is automatically deployed to Heroku whenever a pull request is merged (and tests are passing on CircleCI).

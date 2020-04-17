@@ -44,6 +44,3 @@ class JHDailyReport(Base):
         parameters_repr = ', '.join(field_reprs)
 
         return f'DailyReport({parameters_repr})'
-
-
-Base.metadata.create_all(bind=engine)
