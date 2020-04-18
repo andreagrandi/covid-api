@@ -2,6 +2,7 @@ from .db.models import JHDailyReport
 from .db.database import SessionLocal, engine, Base
 from .jh_cleaning.lookup_table import Matcher
 from .jh_cleaning.region_info import RegionNames
+from .jh_cleaning.clean_columns import clean_extra_whitespace
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
 from requests import Session
@@ -40,11 +41,7 @@ class ReportFetcher:
 
         records = []
         for record in csv.DictReader((line.decode('utf8') for line in response.iter_lines())):
-            if '\ufeffProvince/State' in record:
-                # 2020-03-13 includes this invisible character, which messed up the column names
-                # see https://github.com/CSSEGISandData/COVID-19/pull/1738
-                record['Province/State'] = record['\ufeffProvince/State']
-
+            record = clean_extra_whitespace(record)
             records.append(record)
 
         return records
