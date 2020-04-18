@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session, joinedload
-from datetime import date
+from sqlalchemy.orm import Session
+from datetime import date, datetime
+from typing import Optional
 
 from ..db import models
 from ..schemas import schemas
@@ -61,3 +62,50 @@ class JHCRUD:
         db.refresh(db_daily_report)
 
         return db_daily_report
+
+    def get_daily_report_by_region_and_date(
+            self,
+            db: Session, country_region: str,
+            province_state: Optional[str],
+            fips: Optional[str],
+            admin2: Optional[str], last_update: datetime) -> models.JHDailyReport:
+        """
+        Get a single daily report from the db by matching some kind of region and the date.
+
+        Note that province_state is null for some values of country_region.
+        admin2 and fips were added to the reports later on, so they may be null.
+        FIPS is a code that uniquely identifies a region in the US, whereas admin2
+        is a place name that needs to be used in conjunction with country_region
+        and province_state.
+        """
+        if fips:
+            dr = db.query(models.JHDailyReport).filter(
+                models.JHDailyReport.fips == fips,
+                models.JHDailyReport.last_update == last_update
+            )
+        elif province_state and admin2:
+            dr = db.query(models.JHDailyReport).filter(
+                models.JHDailyReport.province_state == province_state,
+                models.JHDailyReport.country_region == country_region,
+                models.JHDailyReport.admin2 == admin2,
+                models.JHDailyReport.fips.is_(None),
+                models.JHDailyReport.last_update == last_update
+            )
+        elif province_state:
+            dr = db.query(models.JHDailyReport).filter(
+                models.JHDailyReport.fips.is_(None),
+                models.JHDailyReport.admin2.is_(None),
+                models.JHDailyReport.province_state == province_state,
+                models.JHDailyReport.country_region == country_region,
+                models.JHDailyReport.last_update == last_update
+            )
+        else:
+            dr = db.query(models.JHDailyReport).filter(
+                models.JHDailyReport.fips.is_(None),
+                models.JHDailyReport.admin2.is_(None),
+                models.JHDailyReport.province_state.is_(None),
+                models.JHDailyReport.country_region == country_region,
+                models.JHDailyReport.last_update == last_update
+            )
+
+        return dr.one()

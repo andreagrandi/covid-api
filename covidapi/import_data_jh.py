@@ -1,8 +1,10 @@
 from .db.models import JHDailyReport
 from .db.database import SessionLocal, engine, Base
+from .services.crud import JHCRUD
 from .jh_cleaning.lookup_table import Matcher
 from .jh_cleaning.region_info import RegionNames
 from .jh_cleaning.clean_columns import clean_extra_whitespace
+from .jh_cleaning.util import parse_datetime, clean_optional_field
 from sqlalchemy.orm.exc import NoResultFound
 from datetime import datetime, date, timedelta
 from requests import Session
@@ -10,18 +12,6 @@ from requests.exceptions import HTTPError
 from collections import defaultdict, Counter
 from typing import Optional
 import csv
-
-
-def parse_datetime(date_str):
-    """
-    Parse "last updated" datetimes according to known formats
-    """
-    if not date_str:
-        raise ValueError('Date is missing')
-    try:
-        return datetime.fromisoformat(date_str)
-    except ValueError:
-        return datetime.strptime(date_str, r'%m/%d/%y %H:%M')
 
 
 class ImportResult:
@@ -122,53 +112,6 @@ class ReportFetcher:
         return records
 
 
-def get_daily_report_by_region_and_date(
-        db: SessionLocal, country_region: str,
-        province_state: Optional[str],
-        fips: Optional[str],
-        admin2: Optional[str], last_update: datetime) -> JHDailyReport:
-    """
-    Get a single daily report from the db by matching some kind of region and the date.
-
-    Note that province_state is null for some values of country_region.
-    admin2 and fips were added to the reports later on, so they may be null.
-    FIPS is a code that uniquely identifies a region in the US, whereas admin2
-    is a place name that needs to be used in conjunction with country_region
-    and province_state.
-    """
-    if fips:
-        dr = db.query(JHDailyReport).filter(
-            JHDailyReport.fips == fips,
-            JHDailyReport.last_update == last_update
-        )
-    elif province_state and admin2:
-        dr = db.query(JHDailyReport).filter(
-            JHDailyReport.province_state == province_state,
-            JHDailyReport.country_region == country_region,
-            JHDailyReport.admin2 == admin2,
-            JHDailyReport.fips.is_(None),
-            JHDailyReport.last_update == last_update
-        )
-    elif province_state:
-        dr = db.query(JHDailyReport).filter(
-            JHDailyReport.fips.is_(None),
-            JHDailyReport.admin2.is_(None),
-            JHDailyReport.province_state == province_state,
-            JHDailyReport.country_region == country_region,
-            JHDailyReport.last_update == last_update
-        )
-    else:
-        dr = db.query(JHDailyReport).filter(
-            JHDailyReport.fips.is_(None),
-            JHDailyReport.admin2.is_(None),
-            JHDailyReport.province_state.is_(None),
-            JHDailyReport.country_region == country_region,
-            JHDailyReport.last_update == last_update
-        )
-
-    return dr.one()
-
-
 DUPLICATE_ADMIN2 = {
     'Dona Ana': 'Doña Ana',
     'Elko County': 'Elko',
@@ -189,14 +132,11 @@ def clean_admin2(original: Optional[str]):
     return DUPLICATE_ADMIN2.get(value, value) if value else None
 
 
-def clean_optional_field(original: Optional[str]) -> Optional[str]:
-    return original if original else None
-
-
 class Importer:
     def __init__(self, matcher):
         self.db_instance = SessionLocal()
         self.matcher = matcher
+        self.crud = JHCRUD()
 
     def _deduplicate(self, result):
         """
@@ -223,7 +163,7 @@ class Importer:
         Run some checks on the database before we commit
         """
         row = self.db_instance.execute('''
-            select 1
+            select fips
             from jh_daily_reports
             where fips is not null
             group by fips, last_update
@@ -233,7 +173,7 @@ class Importer:
             result.record_error(f'Found records with the same FIPS and last_update: {row}')
 
         row = self.db_instance.execute('''
-            select 1
+            select jh_id
             from jh_daily_reports
             where jh_id is not null
             group by jh_id, last_update
@@ -308,7 +248,7 @@ class Importer:
         recovered = int(row['Recovered'])
 
         try:
-            dr = get_daily_report_by_region_and_date(
+            dr = self.crud.get_daily_report_by_region_and_date(
                 db=self.db_instance,
                 province_state=province_state,
                 country_region=country_region,
