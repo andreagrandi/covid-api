@@ -1,8 +1,9 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import date
 
 from ..db import models
 from ..schemas import schemas
+from ..schemas.enums import Scope
 
 
 class JHCRUD:
@@ -19,8 +20,13 @@ class JHCRUD:
         last_update_to: date = None,
         country: str = None,
         province: str = None,
+        country_code_iso2: str = None,
+        country_code_iso3: str = None,
+        scope: Scope = None
     ):
-        query = db.query(models.JHDailyReport)
+        query = db.query(models.JHDailyReport).join(
+            models.JHRegionInfo
+        )
 
         if last_update_from:
             query = query.filter(models.JHDailyReport.last_update >= last_update_from)
@@ -30,6 +36,12 @@ class JHCRUD:
             query = query.filter(models.JHDailyReport.country_region == country)
         if province:
             query = query.filter(models.JHDailyReport.province_state == province)
+        if country_code_iso2:
+            query = query.filter(models.JHRegionInfo.country_code_iso2 == country_code_iso2)
+        if country_code_iso3:
+            query = query.filter(models.JHRegionInfo.country_code_iso2 == country_code_iso3)
+        if scope:
+            query = query.filter(models.JHRegionInfo.scope == scope)
 
         query = query.offset(skip).limit(limit)
         return query.all()

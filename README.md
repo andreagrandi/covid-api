@@ -24,11 +24,11 @@ The next step will be to add more data sources.
 ```
 In [1]: import requests
 
-In [2]: response = requests.get('https://api.covid19data.cloud/v1/jh/daily-reports?last_update_from=2020-04-01&last_update_to=2020-04-03&country=Italy')
+In [2]: response = requests.get('https://api.covid19data.cloud/v1/jh/daily-reports?last_update_from=2020-04-01&last_update_to=2020-04-03&country_code_iso2=IT&scope=Country_Region')
 
 In [3]: response.json()
 Out[3]:
-[{'id': 35343,
+[{'id': 92789,
   'country_region': 'Italy',
   'province_state': None,
   'fips': None,
@@ -36,16 +36,39 @@ Out[3]:
   'last_update': '2020-04-01T21:58:34',
   'confirmed': 110574,
   'deaths': 13155,
-  'recovered': 16847},
- {'id': 37895,
+  'recovered': 16847,
+  'region_info': {
+    'uid': 380,
+    'scope': 'Country_Region',
+    'country_code_iso2': 'IT',
+    'country_code_iso3': 'ITA',
+    'country_region': 'Italy',
+    'province_state': None,
+    'fips': None,
+    'admin2': None
+  }
+},
+{
+  'id': 95346,
   'country_region': 'Italy',
   'province_state': None,
   'fips': None,
   'admin2': None,
-  'last_update': '2020-04-02T23:25:14',
+  'last_update': '2020-04-02T23:25:00',
   'confirmed': 115242,
   'deaths': 13915,
-  'recovered': 18278}]
+  'recovered': 18278,
+  'region_info': {
+    'uid': 380,
+    'scope': 'Country_Region',
+    'country_code_iso2': 'IT',
+    'country_code_iso3': 'ITA',
+    'country_region': 'Italy',
+    'province_state': None,
+    'fips': None,
+    'admin2': None
+  }
+}]
 ```
 
 Further API documentation is available at https://api.covid19data.cloud/docs
