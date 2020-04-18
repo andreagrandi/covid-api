@@ -20,6 +20,8 @@ class Matcher():
     def match_region(self, region_match):
         """
         Attempt to lookup a region using the names provided
+
+        None = just ignore this region
         """
         try:
             return self.region_matches[region_match]
@@ -30,11 +32,7 @@ class Matcher():
             fuzzier = map_county_to_admin2(fuzzy) if fuzzy else None
             fuzziest = map_boat_passengers(fuzzier) if fuzzier else None
 
-            try:
-                return self.region_matches[fuzziest] if fuzziest else None
-            except KeyError:
-                print(fuzziest)
-                raise
+            return self.region_matches[fuzziest] if fuzziest else None
 
     def lookup_by_id(self, uid):
         """

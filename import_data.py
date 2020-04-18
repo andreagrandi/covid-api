@@ -31,6 +31,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        args.func(args)
+        func = args.func
     except AttributeError:
         parser.print_help()
+    else:
+        func(args)
