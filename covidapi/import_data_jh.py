@@ -23,9 +23,13 @@ class ImportResult:
         self._ignored_regions = Counter()
         self._unexpected_decreases = []
         self._errors = []
+        self._warnings = []
 
     def record_error(self, message):
         self._errors.append(message)
+
+    def record_warning(self, message):
+        self._warnings.append(message)
 
     def record_matched_record(self, jh_id, record):
         """
@@ -69,16 +73,17 @@ class ImportResult:
         return [records for records in self._matched_records.values() if len(records) > 1]
 
     def info(self):
-        info_list = [
-            f'Number of processed locations: {len(self._matched_records)}',
-            f'Number of duplicate locations: {len(self.duplicate_records())}',
-            f'Number of ignored locations: {len(self._ignored_regions)}',        ]
-
-        for location, location_count in self._resolved_duplicate_locations.items():
-            info_list.append(f'Resolved {location_count} duplicate records for {location}')
+        info_list = ['Warning: ' + warning for warning in self._warnings]
 
         for location in self._unmatched_locations:
-            info_list.append(f'No match found for {location}')
+            info_list.append(f'Warning: No match found for {location}')
+
+        info_list.extend([
+            f'Number of processed locations: {len(self._matched_records)}',
+            f'Number of duplicate locations: {len(self.duplicate_records())}',
+            f'Number of resolved duplicate locations: {len(self._resolved_duplicate_locations)}',
+            f'Number of ignored locations: {len(self._ignored_regions)}',
+        ])
 
         for (record, confirmed, deaths, recovered) in self._unexpected_decreases:
             info_list.append(f'Timestamp has been reused for {record!r} (conflicting report: confirmed={confirmed}, deaths={deaths}, recovered={recovered})')
@@ -156,7 +161,11 @@ class Importer:
                     result.record_resolved_duplicate(other.jh_id)
                     self.db_instance.expunge(other)
                 else:
-                    result.record_error(f'Unable to deduplicate {first}: other record has confirmed={other.confirmed}, deaths={other.deaths}, recovered={other.recovered}')
+                    # Conflicting reports for the same place. Choose the highest estimate and print a warning.
+                    # Example: Washington/Washington County, Utah, 2020-04-03 22:46:37
+                    # https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_daily_reports/04-03-2020.csv
+                    result.record_warning(f'Ambiguous record {first}: other record has confirmed={other.confirmed}, deaths={other.deaths}, recovered={other.recovered}')
+                    self.db_instance.expunge(other)
 
     def _sanity_check(self, result):
         """

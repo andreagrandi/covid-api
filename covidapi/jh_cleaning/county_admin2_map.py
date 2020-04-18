@@ -145,19 +145,44 @@ IGNORED_CITIES = (
     'Norwell County, MA',
 )
 
+IGNORED_CITIES_ADMIN2 = (
+    ('Brockton', 'Massachusetts'), # a city in Plymouth County
+    ('Nashua', 'New Hampshire'), # a city in Hillsborough County
+    ('Soldotna', 'Alaska'), # a city in Kenai Peninsula
+    ('Sterling', 'Alaska'), # a city in Kenai Peninsula
+)
+
+IGNORED_ADMIN2 = (
+    'unassigned',
+    'Out-of-state',
+    'Unknown',
+)
+
 ADMIN2_MAP = {
     'Doña Ana': 'Dona Ana',
-    'Elko County': 'Elko',
-    'Garfield County': 'Garfield',
-    'Walla Walla County': 'Walla Walla',
+    'Desoto': 'DeSoto',
+    'LeSeur': 'Le Sueur',
 }
 
-def fix_typos(region_names):
+def clean_admin2(region_names):
     if region_names.admin2:
+        admin2 = ADMIN2_MAP.get(region_names.admin2, region_names.admin2)
+        province_state = region_names.province_state
+        country_region = region_names.country_region
+
+        if admin2 in IGNORED_ADMIN2:
+            return None
+
+        if (admin2, province_state) in IGNORED_CITIES_ADMIN2:
+            return None
+
+        if admin2.endswith(' County'):
+            admin2 = admin2.replace(' County', '')
+
         return RegionNames(
-            admin2 = ADMIN2_MAP.get(region_names.admin2, region_names.admin2),
-            country_region = region_names.country_region,
-            province_state = region_names.province_state
+            admin2 = admin2,
+            country_region = country_region,
+            province_state = province_state
         )
 
     return region_names
@@ -168,6 +193,6 @@ def map_county_to_admin2(region_names):
         return None
 
     region_names = COUNTY_MAP.get(region_names.province_state, region_names)
-    region_names = fix_typos(region_names)
+    region_names = clean_admin2(region_names)
 
     return region_names

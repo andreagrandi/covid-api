@@ -57,6 +57,8 @@ IGNORED_TERRITORIES = (
     'Palestine', # No longer recognised in the lookup table
     'occupied Palestinian territory',
     'Vatican City',
+    'External territories', # not present in lookup table
+    'Jervis Bay Territory', # not present in lookup table
 )
 
 PROVINCE_DUPLICATES_COUNTRY = (
@@ -76,6 +78,7 @@ PROVINCE_MAP = {
     'Saint Martin': 'St Martin',
     'St. Martin': 'St Martin',
     'Macao': 'Macau',
+    'Falkland Islands (Islas Malvinas)': 'Falkland Islands (Malvinas)',
 }
 
 
