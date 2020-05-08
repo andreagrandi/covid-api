@@ -72,13 +72,14 @@ PROVINCE_DUPLICATES_COUNTRY = (
 )
 
 PROVINCE_MAP = {
-    'Fench Guiana': 'French Guiana',
-    'United States Virgin Islands': 'Virgin Islands',
-    'Virgin Islands, U.S.': 'Virgin Islands',
-    'Saint Martin': 'St Martin',
-    'St. Martin': 'St Martin',
-    'Macao': 'Macau',
-    'Falkland Islands (Islas Malvinas)': 'Falkland Islands (Malvinas)',
+    "Fench Guiana": "French Guiana",
+    "United States Virgin Islands": "Virgin Islands",
+    "Virgin Islands, U.S.": "Virgin Islands",
+    "Saint Martin": "St Martin",
+    "St. Martin": "St Martin",
+    "Macao": "Macau",
+    "Falkland Islands (Islas Malvinas)": "Falkland Islands (Malvinas)",
+    "Guadaloupe": "Guadeloupe",
 }
 
 
