@@ -1,10 +1,13 @@
-from covidapi.jh_cleaning.boat_map import map_boat_passengers
-from covidapi.jh_cleaning.country_map import map_countries
-from covidapi.jh_cleaning.county_admin2_map import (
+from covidapi.jh_import.transform.boat_map import map_boat_passengers
+from covidapi.jh_import.transform.country_map import map_countries
+from covidapi.jh_import.transform.county_admin2_map import (
     map_county_to_admin2,
     IGNORED_CITIES,
 )
-from covidapi.jh_cleaning.region_info import RegionNames as R
+from covidapi.jh_import.region_info import RegionNames as R
+from covidapi.jh_import.transform.util import parse_datetime
+from datetime import datetime
+import pytest
 
 
 def test_unassigned_from_diamond_princess_is_diamond_princess_us():
@@ -305,3 +308,26 @@ def test_us_counties_do_not_include_county():
     )
     expected = R(country_region="US", province_state="California", admin2="Madera")
     assert map_county_to_admin2(original) == expected
+
+
+def test_parse_iso_datetime():
+    assert parse_datetime("2020-04-11 22:45:33") == datetime(2020, 4, 11, 22, 45, 33)
+
+
+def test_parse_us_datetime():
+    assert parse_datetime("3/29/20 23:08") == datetime(2020, 3, 29, 23, 8)
+
+
+def test_blank_datetime_raises_valueerror():
+    with pytest.raises(ValueError):
+        parse_datetime("")
+
+
+def test_none_datetime_raises_valueerror():
+    with pytest.raises(ValueError):
+        parse_datetime(None)
+
+
+def test_unknown_format_datetime_raises_valueerror():
+    with pytest.raises(ValueError):
+        parse_datetime("29/3/20 23:08")

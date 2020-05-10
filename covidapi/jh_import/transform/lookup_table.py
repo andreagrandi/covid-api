@@ -3,14 +3,26 @@ import csv
 from .county_admin2_map import map_county_to_admin2
 from .country_map import map_countries
 from .boat_map import map_boat_passengers
-from .region_info import RegionInfo
+from ..region_info import RegionInfo
 
 
-class Matcher():
+def canonical_location(region_match):
+    """
+    Region names are not used consistently, so account for some inconsistencies
+
+    None = just ignore this location
+    """
+    region_match = map_countries(region_match)
+    region_match = map_county_to_admin2(region_match) if region_match else None
+    return map_boat_passengers(region_match) if region_match else None
+
+
+class Matcher:
     """
     Maps a daily report to a canonical region from the lookup table
     (https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv)
     """
+
     def __init__(self):
         self.region_matches = {}
         self.key_matches = {}
@@ -26,13 +38,9 @@ class Matcher():
         try:
             return self.region_matches[region_match]
         except KeyError:
-            # Region names are not used consistently, so account for some
-            # inconsistencies before trying the lookup
-            fuzzy = map_countries(region_match)
-            fuzzier = map_county_to_admin2(fuzzy) if fuzzy else None
-            fuzziest = map_boat_passengers(fuzzier) if fuzzier else None
+            region_match = canonical_location(region_match)
 
-            return self.region_matches[fuzziest] if fuzziest else None
+            return self.region_matches[region_match] if region_match else None
 
     def lookup_by_id(self, uid):
         """
@@ -44,11 +52,13 @@ class Matcher():
         return iter(self.by_id.values())
 
     def _fetch(self):
-        url = 'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv'
+        url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/UID_ISO_FIPS_LookUp_Table.csv"
         response = requests.get(url)
         response.raise_for_status()
 
-        csv_reader = csv.DictReader((line.decode('utf8') for line in response.iter_lines()))
+        csv_reader = csv.DictReader(
+            (line.decode("utf8") for line in response.iter_lines())
+        )
 
         for record in csv_reader:
             try:
