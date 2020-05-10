@@ -2,14 +2,13 @@ from .transform.lookup_table import Matcher
 from .load import Importer
 from .extract import ReportFetcher
 from ..db.models import JHRegionInfo
-from ..db.database import SessionLocal, engine, Base
+from ..db.database import SessionLocal
+from ..services.crud import JHCRUD
 from datetime import date, timedelta
 from requests.exceptions import HTTPError
 
 
 def import_data(args):
-    Base.metadata.create_all(engine)
-
     today = date.today()
 
     if args.all:
@@ -64,8 +63,6 @@ def region_exists(db, uid):
 
 
 def import_regions(args):
-    Base.metadata.create_all(engine)
-
     db_instance = SessionLocal()
 
     for region in Matcher():
@@ -80,3 +77,37 @@ def import_regions(args):
         db_instance.add(row)
 
     db_instance.commit()
+
+
+def link_region(db_instance, daily_report, matcher):
+    region_names = JHRegionInfo(
+        country_region=daily_report.country_region,
+        province_state=daily_report.province_state,
+        admin2=daily_report.admin2,
+    )
+    match = matcher.match_region(region_names)
+    new_jh_id = match.identified_region.uid if match else None
+    if new_jh_id and daily_report.jh_id != new_jh_id:
+        print(f"Updating JH ID from {daily_report.jh_id} to {new_jh_id}")
+        daily_report.jh_id = match.identified_region.jh_id
+        db_instance.add(daily_report)
+
+
+def retroactively_link_regions(args):
+    db_instance = SessionLocal()
+    matcher = Matcher()
+
+    fetched = None
+    skip = 0
+    limit = 10000
+    while fetched != 0:
+        daily_reports = JHCRUD().get_daily_reports(db_instance, skip=skip, limit=limit,)
+        fetched = len(daily_reports)
+
+        for daily_report in daily_reports:
+            link_region(db_instance, daily_report, matcher)
+
+        db_instance.commit()
+
+        skip += limit
+        print(skip)

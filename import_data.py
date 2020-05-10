@@ -16,9 +16,15 @@ parser_regions = subparsers.add_parser(
     help="Import John Hopkins CSSE region information",
 )
 
+parser_link_regions = subparsers.add_parser(
+    "jh_regions_link",
+    description="Retroactively link daily reports to the CSSE lookup table. This does not need to be run after running the main import task (jh).",
+    help="Retroactively link CSSE daily reports to region information",
+)
+
 parser_jh_import = subparsers.add_parser(
     "jh",
-    description="Import John Hopkins CSSE daily reports into the database",
+    description="Import John Hopkins CSSE daily reports into the database.",
     help="Import John Hopkins CSSE daily reports",
 )
 
@@ -38,6 +44,7 @@ parser_jh_import.add_argument(
 
 parser_regions.set_defaults(func=jh_cli.import_regions)
 parser_jh_import.set_defaults(func=jh_cli.import_data)
+parser_link_regions.set_defaults(func=jh_cli.retroactively_link_regions)
 
 if __name__ == "__main__":
     args = parser.parse_args()
