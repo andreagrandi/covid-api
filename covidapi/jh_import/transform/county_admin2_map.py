@@ -384,11 +384,7 @@ IGNORED_CITIES_ADMIN2 = (
     ("Sterling", "Alaska"),  # a city in Kenai Peninsula
 )
 
-IGNORED_ADMIN2 = (
-    "unassigned",
-    "Out-of-state",
-    "Unknown",
-)
+IGNORED_ADMIN2 = ("Unassigned", "unassigned", "Out-of-state", "Unknown", "Southwest")
 
 ADMIN2_MAP = {
     "Doña Ana": "Dona Ana",
