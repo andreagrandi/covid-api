@@ -149,6 +149,7 @@ class Importer:
                 country_region=country_region,
                 admin2=admin2,
                 fips=fips,
+                jh_id=jh_id,
                 last_update=last_update,
             )
         except NoResultFound:
