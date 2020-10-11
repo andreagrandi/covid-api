@@ -100,9 +100,18 @@ The lastest `master` branch is automatically deployed to Heroku whenever a pull 
 
 See [deploying to heroku](./docs/heroku-deploy.md).
 
-# Sponsors and Thanks
+# Exposure notification API modes
 
-- [Heroku](https://www.heroku.com): for sponsoring the costs of running the service
+Exposure Notifications API modesIn v1.5 and higher, the Exposure Notifications API introduced ExposureWindow mode to provide enhanced risk calculation functionality.
+We strongly recommend migrating to ExposureWindow mode. This mode allows you to separately view and revise or revoke matches from multiple days, while still leaving enough quota to update six times per day. Although the legacy v1 mode has more quota that can be used to partition matches by day, your app wastes the user's battery to do so and can even sometimes run out of quota.Alert: When ExposureWindow mode was introduced in v1.5, we began referring to legacy v1 functionality as v1 mode (or the legacy v1 mode). The API continues to maintain support for legacy v1 mode to avoid breakage of apps that use legacy features. However, we strongly recommend against using the legacy v1 mode, especially if you're developing a new app.
+
+1)Select the mode based on the provideDiagnosisKeys method used:
+
+2)To enable the ExposureWindow feature (thereby deactivating the ExposureSummary and ExposureInformation features), call provideDiagnosisKeys(files) with only the list of files.
+
+3)To enable the ExposureSummary and ExposureInformation features (thereby deactivating the ExposureWindow feature), call provideDiagnosisKeys(files, token, config) with a token.
+
+4)The API is backward compatible with all versions: it activates non-breaking changes when a new version is available on the device, even when using the legacy v1 mode. Such changes would include, for example, the same-day release of keys and the ability to provide keys from multiple files with different signatures in one call.
 
 # Disclaimer
 
