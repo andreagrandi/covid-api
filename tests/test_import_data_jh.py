@@ -4,11 +4,11 @@ import pytest
 
 
 def test_parse_iso_datetime():
-    assert parse_datetime('2020-04-11 22:45:33') == datetime(2020, 4, 11, 22, 45, 33)
+    assert parse_datetime('2020-06-12 21:34:29') == datetime(2020, 6, 12, 21, 34, 29)
 
 
 def test_parse_us_datetime():
-    assert parse_datetime('3/29/20 23:08') == datetime(2020, 3, 29, 23, 8)
+    assert parse_datetime('8/24/20 21:27') == datetime(2020, 8, 24, 21, 27)
 
 
 def test_blank_datetime_raises_valueerror():
@@ -23,4 +23,4 @@ def test_none_datetime_raises_valueerror():
 
 def test_unknown_format_datetime_raises_valueerror():
     with pytest.raises(ValueError):
-        parse_datetime('29/3/20 23:08')
+        parse_datetime('24/8/20 21:27')
