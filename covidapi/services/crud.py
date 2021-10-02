@@ -14,7 +14,7 @@ class JHCRUD:
             ).first()
 
     def get_daily_reports(
-        self, db: Session, skip: int = 0, limit: int = 100,
+        self, db: Session, skip: int = 0, limit: int = 1000,
         last_update_from: date = None,
         last_update_to: date = None,
         country: str = None,

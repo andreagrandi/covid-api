@@ -24,7 +24,7 @@ def health():
 
 @router.get("/v1/jh/daily-reports/", response_model=List[JHDailyReport])
 def get_daily_reports(
-    skip: int = 0, limit: int = 100, db: Session = Depends(get_db),
+    skip: int = 0, limit: int = 1000, db: Session = Depends(get_db),
     last_update_from: date = None,
     last_update_to: date = None,
     country: str = None,
